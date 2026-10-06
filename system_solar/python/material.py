@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
-
+import graphics_math as gm
 from appearance import Appearance
 
 if TYPE_CHECKING:
@@ -69,3 +69,14 @@ class Material (Appearance):
     def unload (self, st: State) -> None:
       """Delegates to the active shader - see Shader.unbind_material."""
       st.get_shader().unbind_material(st)
+
+class PhongMaterial (Material):
+ 
+  def __init__ (self, r: float, g: float, b: float, opacity: float = 1.0) -> None:
+    Material.__init__(
+      self,
+      base_color=gm.vec3(r, g, b),
+      opacity=opacity,
+      specular_color=gm.vec3(1.0, 1.0, 1.0),
+      shininess=32.0,
+    )

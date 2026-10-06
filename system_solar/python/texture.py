@@ -6,20 +6,10 @@ import graphics_math as gm
 import wgpu
 
 class Texture:
-  """2D texture bound to `varname`, stored as rgba8unorm-srgb. Content comes
-  from one source: `filename` loads an image, `texel` fills a 1x1 solid
-  color, otherwise a blank `width` x `height` texture is created. A pure
-  resource-holder - no load/unload of its own, see TextureSet."""
 
   def __init__ (self, device: wgpu.GPUDevice, varname: str, filename: str | None, texel: gm.FloatArray | None = None, width: int = 1, height: int = 1) -> None:
-    """Builds and uploads the GPU texture and its view from the given
-    source (image file, solid `texel` color, or blank buffer)."""
     self.varname = varname
     if filename:
-      # sem inverter: a linha 0 da imagem e a linha 0 da textura, ou seja
-      # (s,t) = (0,0) e o canto SUPERIOR esquerdo, como manda a convencao da
-      # WebGPU. Toda geometria daqui (Disk, Square, Quad, Cube, Sphere)
-      # gera t crescendo para baixo, de acordo.
       img = Image.open(filename)
       img = img.convert("RGBA")
       data = np.array(img)
@@ -37,9 +27,6 @@ class Texture:
     self.width: int = width
     self.height: int = height
 
-    # "-srgb": the bytes of an image (jpg/png) already come sRGB-encoded by
-    # convention - the GPU undoes that curve when sampling, delivering the
-    # shader a true linear value.
     self.tex: wgpu.GPUTexture = device.create_texture(
       size=(width, height, 1), format="rgba8unorm-srgb",
       usage=wgpu.TextureUsage.TEXTURE_BINDING | wgpu.TextureUsage.COPY_DST,
@@ -61,6 +48,4 @@ class Texture:
 
   @property
   def resource (self) -> wgpu.GPUTextureView:
-    """The GPU resource TextureSet/Shader.add_texture_set binds - this
-    texture's view."""
     return self.view

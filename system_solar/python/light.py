@@ -99,3 +99,22 @@ class Light(ABC):
       for name, value in values.items():
         if block.has_field(name):
           block.set(name, value)
+
+class PointLight (Light):
+
+  def __init__ (self, x: float, y: float, z: float, space: str = "world", **values: Any) -> None:
+    super().__init__(space=space, light_position=gm.vec4(x, y, z, 1.0), **values)
+
+  def map (self, matrix: gm.Mat4) -> dict[str, Any]:
+    return {"light_position": matrix @ self.get("light_position")}
+
+
+class DirectionalLight (Light):
+
+  def __init__ (self, x: float, y: float, z: float, space: str = "world", **values: Any) -> None:
+    super().__init__(space=space, light_direction=gm.vec3(x, y, z), **values)
+
+  def map (self, matrix: gm.Mat4) -> dict[str, Any]:
+    d = self.get("light_direction")
+    direction = (matrix @ gm.vec4(d[0], d[1], d[2], 0.0))[:3]
+    return {"light_direction": gm.normalize(direction)}
