@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
-
+import math
 import graphics_math as gm
 
 if TYPE_CHECKING:
@@ -118,3 +118,27 @@ class DirectionalLight (Light):
     d = self.get("light_direction")
     direction = (matrix @ gm.vec4(d[0], d[1], d[2], 0.0))[:3]
     return {"light_direction": gm.normalize(direction)}
+
+
+class SpotLight (Light):
+  def __init__ (self, x: float, y: float, z: float,
+                dx: float, dy: float, dz: float,
+                angle: float = 30.0, exponent: float = 10.0,
+                space: str = "world", **values: Any) -> None:
+    if not 0.0 < angle < 90.0:
+      raise ValueError("angulo de abertura deve estar entre 0 e 90 graus")
+    super().__init__(space=space,
+                     light_position=gm.vec4(x, y, z, 1.0),
+                     light_spot_direction=gm.vec3(dx, dy, dz),
+                     light_spot_angle=angle,
+                     light_spot_exponent=exponent,
+                     **values)
+
+  def map (self, matrix: gm.Mat4) -> dict[str, Any]:
+    d = self.get("light_spot_direction")
+    direction = (matrix @ gm.vec4(d[0], d[1], d[2], 0.0))[:3]
+    return {
+      "light_position": matrix @ self.get("light_position"),
+      "light_spot_direction": gm.normalize(direction),
+      "light_spot_cutoff": math.cos(math.radians(self.get("light_spot_angle"))),
+    }
